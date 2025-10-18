@@ -256,7 +256,64 @@ def graph_post_multipart(path: str, files: Dict[str, Any], form: Dict[str, Any],
         except requests.RequestException as e:
             return {"error": str(e)}, 500
 
+
+# ------- ENV-based page tokens (no app id/secret needed) -------
+def _env_get_tokens():
+    raw = os.environ.get("PAGE_TOKENS", "") or ""
+    mapping, loose_tokens = {}, []
+    raw = raw.strip()
+    if not raw:
+        return mapping, loose_tokens
+    try:
+        if raw.startswith("{"):
+            obj = json.loads(raw)
+            if isinstance(obj, dict):
+                for k,v in obj.items():
+                    if k and v: mapping[str(k)] = str(v)
+            return mapping, loose_tokens
+    except Exception:
+        pass
+    parts = [x.strip() for x in re.split(r"[\n,]+", raw) if x.strip()]
+    for x in parts:
+        if "|" in x or ":" in x or "=" in x:
+            for sep in ("|",":","="):
+                if sep in x:
+                    pid, tok = x.split(sep,1)
+                    pid, tok = pid.strip(), tok.strip()
+                    if pid and tok: mapping[pid]=tok
+                    break
+        else:
+            loose_tokens.append(x)
+    return mapping, loose_tokens
+
+def _env_resolve_loose_tokens(existing: dict):
+    pages = []
+    _, loose = _env_get_tokens()
+    for tok in loose:
+        d, st = graph_get("me", {"fields":"id,name"}, tok, ttl=0)
+        if st==200 and isinstance(d, dict) and d.get("id"):
+            pid=str(d["id"]); existing.setdefault(pid, tok)
+            pages.append({"id": pid, "name": d.get("name",""), "access_token": tok})
+    return pages
+
+def _env_pages_list():
+    mp, _ = _env_get_tokens()
+    pages=[]
+    for pid, tok in mp.items():
+        name=""
+        try:
+            d, st = graph_get(str(pid), {"fields":"name"}, tok, ttl=0)
+            if st==200 and isinstance(d, dict): name=d.get("name","")
+        except Exception: pass
+        pages.append({"id": str(pid), "name": name or str(pid), "access_token": tok})
+    pages.extend(_env_resolve_loose_tokens(mp))
+    return pages
 def get_page_access_token(page_id: str, user_token: str) -> Optional[str]:
+    # ENV first
+    mp, _ = _env_get_tokens()
+    if str(page_id) in mp:
+        return mp[str(page_id)]
+
     store = load_tokens()
     pages = store.get("pages") or {}
     if page_id in pages:
@@ -442,8 +499,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
   <div class="tabs">
     <button id="tab-posts" class="active">Đăng bài</button>
     <button id="tab-inbox">Tin nhắn</button>
-    <button id="tab-settings">Cài đặt</button>
-    <button id="tab-page-info">Page info</button>
+        <button id="tab-page-info">Page info</button>
   </div>
 
   <div id="panel-posts" class="panel active">
@@ -529,16 +585,6 @@ INDEX_HTML = r"""<!DOCTYPE html>
       </div>
     </div>
   </div>
-
-  <div id="panel-settings" class="panel">
-    <div class="row">
-      <div class="col">
-        <div class="card">
-          <h3>Cấu hình Facebook App</h3>
-          <div class="grid">
-            <input id="cfg_app_id" placeholder="FB_APP_ID"/>
-            <input id="cfg_app_secret" placeholder="FB_APP_SECRET"/>
-          </div>
           <div class="grid" style="margin-top:8px">
             <input id="cfg_short_token" placeholder="User short-lived token"/>
           </div>
@@ -654,7 +700,6 @@ function showTab(name){
 }
 $('#tab-posts').onclick = ()=>showTab('posts');
 $('#tab-inbox').onclick = ()=>{ showTab('inbox'); loadPagesToSelect('inbox_page'); };
-$('#tab-settings').onclick = ()=>showTab('settings');
 $('#tab-page-info').onclick = ()=>{ showTab('page-info'); loadPagesToSelect('info_page'); };
 
 const pagesBox = $('#pages');
@@ -1007,53 +1052,6 @@ async function pollNewEvents(){
     if(nm.includes('phone')||id.includes('phone')||ph.includes('số điện thoại')) inp.style.display='none';
   });
 }catch(_){}})();
-
-function renderCommentsBox(arr){
-  const box = $('#cmt_box');
-  if(!box) return;
-  const text = arr.map((t,i)=> `${i+1}. ${t}`).join('\n');
-  box.textContent = text;
-}
-
-// Generate top 10 suggested comments (separate panel)
-$('#btn_cmt').onclick = async () => {
-  const keyword = ($('#cmt_keyword').value||'').trim();
-  const tone = $('#cmt_tone').value || 'thân thiện, tự nhiên';
-  const emoji = $('#cmt_emoji').checked;
-  const st = $('#cmt_status');
-  const box = $('#cmt_box');
-  if(!keyword){ st.textContent = 'Nhập từ khoá trước'; return; }
-  st.textContent = 'Đang tạo 10 bình luận...';
-  if(box) box.textContent = '';
-  try{
-    const r = await fetch('/api/ai/comments', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({keyword, tone, emoji})
-    });
-    const d = await r.json();
-    if(d.error){ st.textContent = 'Lỗi: '+JSON.stringify(d); return; }
-    const arr = Array.isArray(d.comments)? d.comments : [];
-    if(arr.length===0){ st.textContent='Không nhận được bình luận.'; return; }
-    renderCommentsBox(arr);
-    st.textContent = 'Đã tạo 10 bình luận gợi ý.';
-  }catch(e){
-    st.textContent = 'Lỗi gọi AI';
-  }
-};
-
-$('#btn_cmt_copy').onclick = async () => {
-  const box = $('#cmt_box');
-  const st = $('#cmt_status');
-  try{
-    const text = (box?.textContent||'').trim();
-    if(!text){ st.textContent = 'Chưa có nội dung để copy'; return; }
-    await navigator.clipboard.writeText(text);
-    st.textContent = 'Đã copy toàn bộ bình luận vào clipboard.';
-  }catch(e){
-    st.textContent = 'Không copy được. Hãy bôi đen và Ctrl+C.';
-  }
-};
 </script>
 </body>
 </html>"""
@@ -1332,18 +1330,15 @@ def api_ai_generate():
     Generate content with fixed structure and dynamic keyword/link.
     """
     if not OPENAI_API_KEY:
-        return jsonify({"error": "NO_OPENAI_API_KEY"}), 400
-
+        return jsonify({"error":"NO_OPENAI_API_KEY"}), 400
     body = request.get_json(force=True)
     prompt = (body.get("prompt") or "").strip()
     tone = (body.get("tone") or "thân thiện")
     length = (body.get("length") or "vừa")
     keyword = (body.get("keyword") or "MB66").strip()
     link = (body.get("link") or "").strip()
-
     if not prompt:
         prompt = f"Viết thân bài giới thiệu {keyword} ngắn gọn, khuyến khích truy cập link chính thức để đảm bảo an toàn và ổn định."
-
     try:
         sys = (
             "Bạn là copywriter mạng xã hội tiếng Việt. "
@@ -1351,7 +1346,6 @@ def api_ai_generate():
             "Không viết tiêu đề, không thêm hashtag, không chèn thông tin liên hệ, không chèn link. "
             f"Giọng {tone}, độ dài {length}. Viết tự nhiên, tránh trùng lặp câu chữ giữa các gạch đầu dòng."
         )
-
         user_prompt = (
             "Nhiệm vụ:\n"
             "- Viết 1 đoạn thân bài (50-120 từ) mạch lạc, thuyết phục về chủ đề sau.\n"
@@ -1361,42 +1355,26 @@ def api_ai_generate():
             f"Chủ đề: {prompt}\n"
             f"Từ khoá chính (chỉ tham chiếu trong thân bài khi cần): {keyword}\n"
         )
-
         headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-        payload = {
-            "model": OPENAI_MODEL,
-            "messages": [
-                {"role": "system", "content": sys},
-                {"role": "user", "content": user_prompt}
-            ],
-            "temperature": 0.8
-        }
-
+        payload = {"model": OPENAI_MODEL, "messages":[{"role":"system","content":sys},{"role":"user","content":user_prompt}], "temperature":0.8}
         r = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=60)
         if r.status_code >= 400:
-            try:
-                return jsonify({"error": "OPENAI_ERROR", "detail": r.json()}), r.status_code
-            except Exception:
-                return jsonify({"error": "OPENAI_ERROR", "detail": r.text}), r.status_code
-
+            try: return jsonify({"error":"OPENAI_ERROR", "detail": r.json()}), r.status_code
+            except Exception: return jsonify({"error":"OPENAI_ERROR", "detail": r.text}), r.status_code
         data = r.json()
-        raw = (data.get("choices") or [{}])[0].get("message", {}).get("content", "").strip()
-
+        raw = (data.get("choices") or [{}])[0].get("message", {}).get("content","").strip()
         body_text, bullets_text = raw, ""
         if "\n---\n" in raw:
             parts = raw.split("\n---\n", 1)
             body_text = parts[0].strip()
             bullets_text = parts[1].strip()
-
         lines = [l.strip().lstrip("-• ").rstrip() for l in bullets_text.splitlines() if l.strip()]
         if lines:
             bullets = "\n".join([f"- {l}" for l in lines])
         else:
             bullets = "- Truy cập an toàn, ổn định.\n- Hỗ trợ nhanh chóng khi cần.\n- Tối ưu trải nghiệm khi sử dụng."
-
         key = keyword.strip()
         nospace = key.replace(" ", "")
-
         tags = [
             f"#{key}",
             f"#LinkChínhThức{nospace}",
@@ -1405,20 +1383,7 @@ def api_ai_generate():
             f"#RútTiền{nospace}",
             f"#MởKhóaTàiKhoản{nospace}",
         ]
-
-        # Append extra hashtags
-        try:
-            extra = _extra_hashtags(keyword)
-            existing_lower = set([t.lower() for t in tags])
-            for t in extra:
-                if t.lower() not in existing_lower:
-                    tags.append(t)
-                    existing_lower.add(t.lower())
-        except Exception:
-            pass
-
         header = f"🌟 Truy Cập Link {key} Chính Thức - Không Bị Chặn 🌟\n#{key} ➡ {link or ''}".rstrip()
-
         final_text = (
 f"""{header}
 
@@ -1435,11 +1400,9 @@ Telegram: @cattien999
 Hashtags:
 {' '.join(tags)}"""
         ).strip()
-
         return jsonify({"text": final_text}), 200
-
     except Exception as e:
-        return jsonify({"error": "OPENAI_EXCEPTION", "detail": str(e)}), 500
+        return jsonify({"error":"OPENAI_EXCEPTION", "detail": str(e)}), 500
 
 # ----------------------------
 # Diagnostics/config/token
