@@ -1052,6 +1052,26 @@ async function pollNewEvents(){
     if(nm.includes('phone')||id.includes('phone')||ph.includes('số điện thoại')) inp.style.display='none';
   });
 }catch(_){}})();
+
+// --- Hide Settings & Page Info, keep only Posts and Inbox ---
+(function(){
+  function hideById(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.style.display = 'none';
+    const card = el.closest('.card');
+    if(card) card.style.display = 'none';
+    const panel = el.closest('.panel');
+    if(panel) panel.style.display = 'none';
+  }
+  // Hide tab button & panel
+  hideById('tab-page-info');
+  hideById('panel-page-info');
+
+  // Hide settings & diagnostics blocks
+  ['cfg_app_id','cfg_app_secret','cfg_short_token','btn_save_cfg','btn_exchange','cfg_status','btn_diag','diag_out']
+    .forEach(hideById);
+})();
 </script>
 </body>
 </html>"""
