@@ -1092,12 +1092,20 @@ def reels_finish(page_id: str, page_token: str, video_id: str, description: str)
 @app.route("/api/pages")
 def api_list_pages():
     token = session.get("user_access_token") or (load_tokens().get("user_long") or {}).get("access_token")
-    if not token:
-        return jsonify({"error": "NOT_LOGGED_IN"}), 401
-    data, status = graph_get("me/accounts", {"limit": 200}, token, ttl=0)
-    return jsonify(data), status
+    if token:
+        data, status = graph_get("me/accounts", {"limit": 200}, token, ttl=0)
+        return jsonify(data), status
 
-# ------- Page info (GET current) -------
+    # Fallback: nếu có PAGE_TOKENS trong ENV thì trả về luôn danh sách page từ ENV
+    try:
+        env_pages = _env_pages_list()
+        if env_pages:
+            return jsonify({"data": env_pages}), 200
+    except Exception:
+        pass
+
+    return jsonify({"error": "NOT_LOGGED_IN"}), 401
+
 @app.route("/api/pages/<page_id>/info")
 def api_page_info(page_id):
     token = session.get("user_access_token") or (load_tokens().get("user_long") or {}).get("access_token")
