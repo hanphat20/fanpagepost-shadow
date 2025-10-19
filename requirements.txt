@@ -1,5 +1,6 @@
-flask
-requests
+Flask
 gunicorn
-openai
+requests
 python-dotenv
+openai>=1.0.0
+werkzeug<3
