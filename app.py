@@ -886,3 +886,55 @@ def api_usage():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))
     app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
+
+
+# =============== Diagnostics helpers ===============
+def _safe_jsonify_error(e: Exception, tag: str):
+    try:
+        return jsonify({"error": tag, "detail": str(e)}), 500
+    except Exception:
+        return "internal error", 500
+
+@app.route("/api/debug/page/<page_id>/has_token")
+def api_debug_has_token(page_id):
+    try:
+        mp, _ = _env_get_tokens()
+        env_has = str(page_id) in mp
+        store = load_tokens()
+        file_has = str(page_id) in (store.get("pages") or {})
+        return jsonify({"env_has": env_has, "file_has": file_has}), 200
+    except Exception as e:
+        return _safe_jsonify_error(e, "DEBUG_EXCEPTION")
+
+# Override endpoints with safer try/except wrappers
+@app.route("/api/pages/<page_id>/conversations.safe")
+def api_list_conversations_safe(page_id):
+    try:
+        token = session.get("user_access_token") or (load_tokens().get("user_long") or {}).get("access_token")
+        if not token and not _env_get_tokens()[0].get(str(page_id)):
+            return jsonify({"error": "NOT_LOGGED_IN"}), 401
+        page_token = get_page_access_token(page_id, token or "")
+        if not page_token: return jsonify({"error":"NO_PAGE_TOKEN"}), 403
+        fields = "id,link,updated_time,unread_count,participants,senders"
+        data, st = graph_get(f"{page_id}/conversations", {"fields": fields, "limit": 20}, page_token, ttl=0, ctx_key=_ctx_key_for_page(page_id))
+        return jsonify(data), st
+    except Exception as e:
+        return _safe_jsonify_error(e, "CONVERSATIONS_EXCEPTION")
+
+@app.route("/api/pages/<page_id>/post.safe", methods=["POST"])
+def api_post_to_page_safe(page_id):
+    try:
+        token = session.get("user_access_token") or (load_tokens().get("user_long") or {}).get("access_token")
+        if not token and not _env_get_tokens()[0].get(str(page_id)):
+            return jsonify({"error": "NOT_LOGGED_IN"}), 401
+        body = request.get_json(force=True, silent=True) or {}
+        message = (body.get("message") or "").strip()
+        if not message: return jsonify({"error":"EMPTY_MESSAGE"}), 400
+        if _recent_content_guard("post", page_id, message, within_sec=3600):
+            return jsonify({"error":"DUPLICATE_MESSAGE"}), 429
+        page_token = get_page_access_token(page_id, token or "")
+        if not page_token: return jsonify({"error":"NO_PAGE_TOKEN"}), 403
+        data, status = graph_post(f"{page_id}/feed", {"message": message}, page_token, ctx_key=_ctx_key_for_page(page_id))
+        return jsonify(data), status
+    except Exception as e:
+        return _safe_jsonify_error(e, "POST_EXCEPTION")
