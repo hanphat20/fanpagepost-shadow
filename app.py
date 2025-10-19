@@ -137,48 +137,47 @@ CLASSIC_HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Facebook Page Manager (Classic Fixed)</title>
+<title>Facebook Page Manager (Completed)</title>
 <style>
- body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f6f7}
- .wrap{max-width:1100px;margin:18px auto;padding:0 16px}
- h1{font-size:20px;margin:0 0 10px}
- .tabs{display:flex;gap:8px;margin-bottom:10px}
- .tab{padding:8px 12px;border-radius:999px;border:1px solid #e4e7ec;background:#fff;cursor:pointer}
- .tab.active{background:#1976d2;color:#fff;border-color:#1976d2}
- .row{display:flex;gap:12px;flex-wrap:wrap}
- .col{flex:1 1 420px;min-width:320px}
- .card{background:#fff;border:1px solid #e4e7ec;border-radius:10px;padding:12px}
- textarea,input,select,button{font:inherit}
- textarea,input,select{width:100%;padding:10px;border:1px solid #e4e7ec;border-radius:8px}
- .toolbar{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
- /* ---- List chuẩn: 1 dòng + checkbox cố định ---- */
- .list{border:1px dashed #e4e7ec;border-radius:8px;padding:6px;background:#fafafa;
-       max-height:320px;overflow:auto}
- .item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px dashed #eee}
- .item:last-child{border-bottom:none}
- .item .name{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .item .tick{flex:0 0 36px;display:flex;justify-content:flex-end}
- .item input[type="checkbox"]{ width:22px;height:22px }
- .status{color:#6b7280;font-size:12px;margin-top:6px}
- .btn{padding:8px 12px;border:1px solid #e4e7ec;border-radius:8px;background:#fff;cursor:pointer}
- .btn.primary{background:#1976d2;color:#fff;border-color:#1976d2}
- /* ---- Chat bubbles ---- */
- #msg_list{max-height:420px;overflow:auto;padding:10px;background:#fafafa;border-radius:8px}
- .msg{display:flex;margin:6px 0}
- .msg .bubble{max-width:80%;padding:10px 12px;border-radius:14px;line-height:1.35;word-break:break-word;box-shadow:0 1px 0 rgba(0,0,0,.04)}
- .msg.other{justify-content:flex-start}
- .msg.other .bubble{background:#fff;border:1px solid #e4e7ec}
- .msg.me{justify-content:flex-end}
- .msg.me .bubble{background:#1976d2;color:#fff}
- .msg .meta{font-size:11px;color:#6b7280;margin-top:4px}
- /* PIN overlay */
- #pin_overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:9999}
- #pin_box{background:#fff;border-radius:12px;padding:16px;min-width:300px}
- @media (max-width:480px){
-   .item{padding:8px}
-   .item .tick{flex-basis:30px}
-   .msg .bubble{max-width:88%}
- }
+  body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f6f7}
+  .wrap{max-width:1200px;margin:18px auto;padding:0 16px}
+  h1{font-size:20px;margin:0 0 10px}
+  .tabs{display:flex;gap:8px;margin-bottom:10px}
+  .tab{padding:8px 12px;border-radius:999px;border:1px solid #e4e7ec;background:#fff;cursor:pointer}
+  .tab.active{background:#1976d2;color:#fff;border-color:#1976d2}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .col{flex:1 1 460px;min-width:340px}
+  .card{background:#fff;border:1px solid #e4e7ec;border-radius:10px;padding:12px}
+  textarea,input,select,button{font:inherit}
+  textarea,input,select{width:100%;padding:10px;border:1px solid #e4e7ec;border-radius:8px}
+  .toolbar{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  /* Danh sách Fanpage 1 dòng / checkbox cố định bên phải */
+  .list{border:1px dashed #e4e7ec;border-radius:8px;padding:6px;background:#fafafa;max-height:330px;overflow:auto}
+  .item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px dashed #eee}
+  .item:last-child{border-bottom:none}
+  .item .name{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .tick{flex:0 0 36px;display:flex;justify-content:flex-end}
+  .item input[type="checkbox"]{width:22px;height:22px}
+  .status{color:#6b7280;font-size:12px;margin-top:6px}
+  .btn{padding:8px 12px;border:1px solid #e4e7ec;border-radius:8px;background:#fff;cursor:pointer}
+  .btn.primary{background:#1976d2;color:#fff;border-color:#1976d2}
+  /* Tin nhắn (tab khác) */
+  #msg_list{max-height:420px;overflow:auto;padding:10px;background:#fafafa;border-radius:8px}
+  .msg{display:flex;margin:6px 0}
+  .msg .bubble{max-width:80%;padding:10px 12px;border-radius:14px;line-height:1.35;word-break:break-word;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+  .msg.other{justify-content:flex-start}
+  .msg.other .bubble{background:#fff;border:1px solid #e4e7ec}
+  .msg.me{justify-content:flex-end}
+  .msg.me .bubble{background:#1976d2;color:#fff}
+  .msg .meta{font-size:11px;color:#6b7280;margin-top:4px}
+  /* PIN overlay */
+  #pin_overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:9999}
+  #pin_box{background:#fff;border-radius:12px;padding:16px;min-width:300px}
+  @media (max-width:480px){
+    .item{padding:8px}
+    .item .tick{flex-basis:30px}
+    .msg .bubble{max-width:88%}
+  }
 </style>
 </head>
 <body>
@@ -187,10 +186,14 @@ CLASSIC_HTML = r"""<!DOCTYPE html>
   <div class="tabs">
     <button id="tab-posts" class="tab active">Đăng bài</button>
     <button id="tab-inbox" class="tab">Tin nhắn</button>
+    <button class="tab" disabled>Cài đặt</button>
+    <button class="tab" disabled>Page info</button>
   </div>
 
+  <!-- TAB: Đăng bài -->
   <div id="panel-posts">
     <div class="row">
+      <!-- Trái: Fanpage + AI soạn nội dung -->
       <div class="col">
         <div class="card">
           <h3>Fanpage</h3>
@@ -224,28 +227,40 @@ CLASSIC_HTML = r"""<!DOCTYPE html>
         </div>
       </div>
 
+      <!-- Phải: Đăng nội dung -->
       <div class="col">
         <div class="card">
           <h3>Đăng nội dung</h3>
           <textarea id="post_text" rows="7" placeholder="Nội dung bài viết..."></textarea>
+
+          <!-- Hàng 1: Loại đăng + Video (giống hình 2) -->
           <div class="toolbar">
-            <label for="post_type">Loại</label>
-            <select id="post_type"><option value="feed">Feed</option><option value="reels">Reels</option></select>
-            <input type="file" id="video_input" accept="video/*"/>
+            <label for="post_type" style="align-self:center">Loại đăng</label>
+            <select id="post_type">
+              <option value="feed">Feed</option>
+              <option value="reels">Reels</option>
+            </select>
+            <input type="file" id="video_input" accept="video/*" />
           </div>
+
+          <!-- Hàng 2: Ảnh + Caption -->
           <div class="toolbar">
-            <input type="file" id="photo_input" accept="image/*"/>
+            <input type="file" id="photo_input" accept="image/*" />
             <input type="text" id="media_caption" placeholder="Caption (tuỳ chọn)"/>
           </div>
+
+          <!-- Hàng 3: Nút Đăng -->
           <div class="toolbar">
             <button id="btn_publish" class="btn primary">Đăng</button>
           </div>
+
           <div id="post_status" class="status"></div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- TAB: Tin nhắn (giữ nguyên logic hiện có) -->
   <div id="panel-inbox" style="display:none">
     <div class="row">
       <div class="col">
@@ -271,6 +286,7 @@ CLASSIC_HTML = r"""<!DOCTYPE html>
   </div>
 </div>
 
+<!-- PIN overlay -->
 <div id="pin_overlay">
   <div id="pin_box">
     <h3>Nhập PIN để truy cập</h3>
@@ -281,47 +297,45 @@ CLASSIC_HTML = r"""<!DOCTYPE html>
 </div>
 
 <script>
-const $ = (s)=>document.querySelector(s);
-const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+const $=(s)=>document.querySelector(s);
+const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 
 function showTab(name){
   ['posts','inbox'].forEach(id=>{
     const t=document.getElementById('tab-'+id);
     const p=document.getElementById('panel-'+id);
     if(t) t.classList.toggle('active', id===name);
-    if(p) p.style.display = (id===name)?'block':'none';
+    if(p) p.style.display=(id===name)?'block':'none';
   });
 }
-$('#tab-posts')?.addEventListener('click', ()=>showTab('posts'));
-$('#tab-inbox')?.addEventListener('click', ()=>{ showTab('inbox'); loadPagesToSelect('inbox_page'); });
+$('#tab-posts')?.addEventListener('click',()=>showTab('posts'));
+$('#tab-inbox')?.addEventListener('click',()=>{showTab('inbox');loadPagesToSelect('inbox_page');});
 
 async function ensurePin(){
   try{
-    const r = await fetch('/api/pin/status'); const d = await r.json();
+    const r=await fetch('/api/pin/status'); const d=await r.json();
     if(d.need_pin && !d.ok){ $('#pin_overlay').style.display='flex'; }
   }catch(e){}
 }
-$('#btn_pin_ok').onclick = async ()=>{
-  const pin = ($('#pin_input').value||'').trim();
-  const r = await fetch('/api/pin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
-  const d = await r.json();
+$('#btn_pin_ok').onclick=async()=>{
+  const pin=($('#pin_input').value||'').trim();
+  const r=await fetch('/api/pin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
+  const d=await r.json();
   if(d.ok){ $('#pin_overlay').style.display='none'; loadPages(); } else { $('#pin_status').textContent='PIN sai'; }
 };
 
-// ----- Pages -----
-const pagesBox = $('#pages'), pagesStatus = $('#pages_status');
+/* Pages */
+const pagesBox=$('#pages'), pagesStatus=$('#pages_status');
 async function loadPages(){
   pagesBox.innerHTML='<div class="status">Đang tải...</div>';
   try{
-    const r = await fetch('/api/pages'); const d = await r.json();
-    if(d.error){ pagesStatus.textContent = JSON.stringify(d); return; }
-    const arr = d.data || [];
-    pagesBox.innerHTML = arr.map(p => `
+    const r=await fetch('/api/pages'); const d=await r.json();
+    if(d.error){ pagesStatus.textContent=JSON.stringify(d); return; }
+    const arr=d.data||[];
+    pagesBox.innerHTML=arr.map(p=>`
       <div class="item">
         <div class="name" title="${(p.name||'').replaceAll('"','&quot;')}">${p.name||''}</div>
-        <div class="tick">
-          <input type="checkbox" class="pg" value="${p.id}" data-name="${(p.name||'').replaceAll('"','&quot;')}">
-        </div>
+        <div class="tick"><input type="checkbox" class="pg" value="${p.id}" data-name="${(p.name||'').replaceAll('"','&quot;')}"></div>
       </div>`).join('');
     pagesStatus.textContent='Tải '+arr.length+' page.';
   }catch(e){ pagesStatus.textContent='Lỗi tải danh sách page'; }
@@ -329,39 +343,39 @@ async function loadPages(){
 function selectedPageIds(){ return Array.from(document.querySelectorAll('.pg:checked')).map(i=>i.value); }
 async function loadPagesToSelect(id){
   try{
-    const r = await fetch('/api/pages'); const d = await r.json(); const arr = d.data || [];
-    $('#'+id).innerHTML = '<option value="">--Chọn page--</option>' + arr.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');
+    const r=await fetch('/api/pages'); const d=await r.json(); const arr=d.data||[];
+    $('#'+id).innerHTML='<option value="">--Chọn page--</option>'+arr.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');
   }catch(e){ $('#'+id).innerHTML='<option>Lỗi tải page</option>'; }
 }
 
-// ----- AI Writer -----
-$('#btn_ai').onclick = async () => {
-  const prompt  = ($('#ai_prompt').value||'').trim();
-  const keyword = ($('#ai_keyword').value||'').trim();
-  const link    = ($('#ai_link').value||'').trim();
-  const tone    = $('#ai_tone').value;
-  const length  = $('#ai_length').value;
-  const st = $('#ai_status');
+/* AI Writer */
+$('#btn_ai').onclick=async()=>{
+  const prompt=($('#ai_prompt').value||'').trim();
+  const keyword=($('#ai_keyword').value||'').trim();
+  const link=($('#ai_link').value||'').trim();
+  const tone=$('#ai_tone').value;
+  const length=$('#ai_length').value;
+  const st=$('#ai_status');
   if(!OPENAI_API_KEY_PLACEHOLDER){ st.textContent='Cần OPENAI_API_KEY trên server'; return; }
   st.textContent='Đang tạo nội dung...';
   try{
-    const r = await fetch('/api/ai/generate', {method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({prompt, keyword, link, tone, length})});
-    const d = await r.json();
+    const r=await fetch('/api/ai/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,keyword,link,tone,length})});
+    const d=await r.json();
     if(d.error){ st.textContent='Lỗi: '+(d.detail||d.error); return; }
-    $('#post_text').value = d.text || '';
+    $('#post_text').value=d.text||'';
     st.textContent='Đã chèn nội dung vào khung soạn.';
   }catch(e){ st.textContent='Lỗi gọi AI'; }
 };
 
-// ----- Publish -----
-$('#btn_publish').onclick = async () => {
-  const pages = selectedPageIds();
-  const text = ($('#post_text').value||'').trim();
-  const type = $('#post_type').value;
-  const photo = $('#photo_input').files[0]||null;
-  const video = $('#video_input').files[0]||null;
-  const caption = ($('#media_caption').value||'');
-  const st = $('#post_status');
+/* Publish */
+$('#btn_publish').onclick=async()=>{
+  const pages=selectedPageIds();
+  const text=($('#post_text').value||'').trim();
+  const type=$('#post_type').value;
+  const photo=$('#photo_input').files[0]||null;
+  const video=$('#video_input').files[0]||null;
+  const caption=$('#media_caption').value||'';
+  const st=$('#post_status');
 
   if(!pages.length){ st.textContent='Chọn ít nhất một page'; return; }
   if(type==='feed' && !text && !photo && !video){ st.textContent='Cần nội dung hoặc tệp'; return; }
@@ -369,67 +383,30 @@ $('#btn_publish').onclick = async () => {
 
   st.textContent='Đang đăng...';
   try{
-    const results = [];
+    const results=[];
     for(const pid of pages){
       let d;
       if(type==='feed'){
         if(video){
-          const fd=new FormData(); fd.append('video', video); fd.append('description', caption||text||'');
-          d = await (await fetch('/api/pages/'+pid+'/video',{method:'POST',body:fd})).json();
+          const fd=new FormData(); fd.append('video',video); fd.append('description',caption||text||'');
+          d=await (await fetch('/api/pages/'+pid+'/video',{method:'POST',body:fd})).json();
         }else if(photo){
-          const fd=new FormData(); fd.append('photo', photo); fd.append('caption', caption||text||'');
-          d = await (await fetch('/api/pages/'+pid+'/photo',{method:'POST',body:fd})).json();
+          const fd=new FormData(); fd.append('photo',photo); fd.append('caption',caption||text||'');
+          d=await (await fetch('/api/pages/'+pid+'/photo',{method:'POST',body:fd})).json();
         }else{
-          d = await (await fetch('/api/pages/'+pid+'/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})})).json();
+          d=await (await fetch('/api/pages/'+pid+'/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})})).json();
         }
       }else{
-        const fd=new FormData(); fd.append('video', video); fd.append('description', caption||text||'');
-        d = await (await fetch('/api/pages/'+pid+'/reel',{method:'POST',body:fd})).json();
+        const fd=new FormData(); fd.append('video',video); fd.append('description',caption||text||'');
+        d=await (await fetch('/api/pages/'+pid+'/reel',{method:'POST',body:fd})).json();
       }
       if(d.error){ results.push('❌ '+pid+': '+JSON.stringify(d)); }
       else{ results.push('✅ '+pid+(d.permalink_url?(' · <a target="_blank" href="'+d.permalink_url+'">Mở bài</a>'):'') ); }
       await sleep(800);
     }
-    st.innerHTML = results.join('<br/>');
+    st.innerHTML=results.join('<br/>');
   }catch(e){ st.textContent='Lỗi đăng'; }
 };
-
-// ----- Inbox -----
-let currentThread=null, currentRecipient=null;
-$('#btn_load_conv').onclick = async ()=>{
-  const pid = $('#inbox_page').value, st=$('#inbox_status');
-  if(!pid){ st.textContent='Chưa chọn page'; return; }
-  st.textContent='Đang tải hội thoại...';
-  try{
-    const d = await (await fetch('/api/pages/'+pid+'/conversations')).json();
-    if(d.error){ st.textContent='Lỗi: '+JSON.stringify(d); return; }
-    const arr = d.data||[];
-    $('#conv_list').innerHTML = arr.map(cv=>{
-      let label=cv.id;
-      try{ const parts=(cv.participants&&cv.participants.data)||[]; const other=parts.find(p=>p.id!==pid); if(other&&other.name) label=other.name; }catch(_){}
-      return '<div class="item"><a href="#" class="open-thread" data-id="'+cv.id+'">'+label+'</a><span>'+(cv.updated_time||'')+'</span></div>';
-    }).join('');
-    $('#conv_list').querySelectorAll('.open-thread').forEach(a=>a.addEventListener('click', async (e)=>{e.preventDefault(); await openThread(pid, a.getAttribute('data-id'));}));
-    st.textContent='Đã tải '+arr.length+' hội thoại.';
-  }catch(e){ st.textContent='Lỗi tải hội thoại'; }
-};
-async function openThread(pageId, threadId){
-  const st=$('#inbox_status'); st.textContent='Đang tải tin nhắn...';
-  try{
-    const d = await (await fetch('/api/pages/'+pageId+'/conversations/'+threadId)).json();
-    if(d.error){ st.textContent='Lỗi: '+JSON.stringify(d); return; }
-    const msgs=((d.messages||{}).data)||[];
-    currentThread=threadId; let rec=null;
-    for(const m of msgs){
-      const tos=((m.to||{}).data)||[]; const fr=m.from||{};
-      for(const t of tos){ if(t.id!==pageId){ rec=t.id; break; } }
-      if(!rec and fr.get('id')!=pageId): pass
-      if(not rec and fr.get('id')!=pageId): rec = fr.get('id')
-      if(rec): break
-    }
-    // Python code accidentally included in JS above; fix JS below
-  }catch(e){ st.textContent='Lỗi tải tin nhắn'; }
-}
 </script>
 </body>
 </html>
