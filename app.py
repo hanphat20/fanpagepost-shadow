@@ -495,7 +495,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
 </head>
 <body>
   <div class="container">
-  <h1>Facebook Page Manager (Completed)</h1>
+  <h1>Bản quyền AKUTA (2025)</h1>
   <div class="tabs">
     <button id="tab-posts" class="active">Đăng bài</button>
     <button id="tab-inbox">Tin nhắn</button>
