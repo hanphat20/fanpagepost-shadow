@@ -692,11 +692,13 @@ $('#btn_pin_ok').onclick = async () => {
 };
 
 function showTab(name){
-  ['posts','inbox','settings','page-info'].forEach(n=>{
-    const id = n==='page-info' ? 'page-info' : n;
-    $('#tab-'+id).classList.toggle('active', id===name);
-    $('#panel-'+id).classList.toggle('active', id===name);
+  ['posts','inbox'].forEach(id=>{
+    const t=document.getElementById('tab-'+id);
+    const p=document.getElementById('panel-'+id);
+    if(t && t.classList){ t.classList.toggle('active', id===name); }
+    if(p){ p.style.display=(id===name)?'block':'none'; }
   });
+});
 }
 $('#tab-posts').onclick = ()=>showTab('posts');
 $('#tab-inbox').onclick = ()=>{ showTab('inbox'); loadPagesToSelect('inbox_page'); };
