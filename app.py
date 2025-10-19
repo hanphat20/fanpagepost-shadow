@@ -1073,6 +1073,32 @@ async function pollNewEvents(){
     .forEach(hideById);
 })();
 </script>
+
+<!-- PATCH: Harden tabs & PIN overlay -->
+<script>
+window.addEventListener('load', function(){
+  // Defensive showTab: only toggle nodes that exist
+  window.showTab = function(name){
+    ['posts','inbox','settings','page-info'].forEach(function(id){
+      var tab = document.getElementById('tab-' + id);
+      var panel = document.getElementById('panel-' + id);
+      if (tab)   tab.classList.toggle('active', id === name);
+      if (panel) panel.classList.toggle('active', id === name);
+    });
+  };
+  var tp = document.getElementById('tab-posts');
+  if (tp) tp.onclick = function(){ showTab('posts'); };
+  var ti = document.getElementById('tab-inbox');
+  if (ti) ti.onclick = function(){ showTab('inbox'); try{ loadPagesToSelect('inbox_page'); }catch(e){} };
+
+  // Avoid 404 noise if audio file missing
+  try{ var a = document.getElementById('newMsg'); if(a && !a.getAttribute('src')) a.remove(); }catch(e){}
+
+  // Re-run PIN check in case earlier script crashed
+  try{ ensurePin(); }catch(e){}
+});
+</script>
+
 </body>
 </html>"""
 
