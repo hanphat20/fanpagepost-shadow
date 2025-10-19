@@ -1,5 +1,5 @@
 
-import os, json, re, time as pytime
+import os, json, re
 from typing import Any, Dict, Optional, Tuple
 import requests
 from flask import Flask, request, session, jsonify, render_template_string
@@ -8,24 +8,18 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
 
 GRAPH_BASE = "https://graph.facebook.com/v20.0"
-RUPLOAD_BASE = "https://rupload.facebook.com/video-upload/v13.0"
-
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 ACCESS_PIN = (os.environ.get("ACCESS_PIN") or "").strip()
-
 TOKENS_FILE = os.environ.get("TOKENS_FILE", "/etc/secrets/tokens.json")
 
 # ----------------- PIN middleware -----------------
 @app.before_request
 def require_pin_for_api():
-    if not ACCESS_PIN:
-        return
+    if not ACCESS_PIN: return
     p = request.path or ""
-    if not p.startswith("/api/"): 
-        return
-    if p in ("/api/pin/status","/api/pin/login","/api/pin/logout"):
-        return
+    if not p.startswith("/api/"): return
+    if p in ("/api/pin/status","/api/pin/login","/api/pin/logout"): return
     if not session.get("pin_ok"):
         return jsonify({"error":"PIN_REQUIRED"}), 401
 
@@ -83,7 +77,6 @@ def page_token_for(page_id: str) -> Optional[str]:
     store = load_tokens()
     if "pages" in store and str(page_id) in (store["pages"] or {}):
         return store["pages"][str(page_id)]
-    # fallback: if only user token is present, try /me/accounts
     user_tok = (store.get("user_long") or {}).get("access_token") or ""
     if not user_tok: 
         return None
@@ -138,13 +131,13 @@ def graph_post_multipart(path, files, form, token):
     except requests.RequestException as e:
         return {"error": str(e)}, 500
 
-# ----------------- Classic UI -----------------
+# ----------------- Classic UI (fixed) -----------------
 CLASSIC_HTML = r"""<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Facebook Page Manager (Completed)</title>
+<title>Facebook Page Manager (Classic Fixed)</title>
 <style>
  body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f6f7}
  .wrap{max-width:1100px;margin:18px auto;padding:0 16px}
@@ -158,15 +151,34 @@ CLASSIC_HTML = r"""<!DOCTYPE html>
  textarea,input,select,button{font:inherit}
  textarea,input,select{width:100%;padding:10px;border:1px solid #e4e7ec;border-radius:8px}
  .toolbar{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
- .list{border:1px dashed #e4e7ec;border-radius:8px;padding:6px;background:#fafafa;max-height:320px;overflow:auto}
- .item{display:flex;justify-content:space-between;padding:6px 8px;border-bottom:1px dashed #eee}
+ /* ---- List chuẩn: 1 dòng + checkbox cố định ---- */
+ .list{border:1px dashed #e4e7ec;border-radius:8px;padding:6px;background:#fafafa;
+       max-height:320px;overflow:auto}
+ .item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px dashed #eee}
  .item:last-child{border-bottom:none}
+ .item .name{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .item .tick{flex:0 0 36px;display:flex;justify-content:flex-end}
+ .item input[type="checkbox"]{ width:22px;height:22px }
  .status{color:#6b7280;font-size:12px;margin-top:6px}
  .btn{padding:8px 12px;border:1px solid #e4e7ec;border-radius:8px;background:#fff;cursor:pointer}
  .btn.primary{background:#1976d2;color:#fff;border-color:#1976d2}
+ /* ---- Chat bubbles ---- */
+ #msg_list{max-height:420px;overflow:auto;padding:10px;background:#fafafa;border-radius:8px}
+ .msg{display:flex;margin:6px 0}
+ .msg .bubble{max-width:80%;padding:10px 12px;border-radius:14px;line-height:1.35;word-break:break-word;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+ .msg.other{justify-content:flex-start}
+ .msg.other .bubble{background:#fff;border:1px solid #e4e7ec}
+ .msg.me{justify-content:flex-end}
+ .msg.me .bubble{background:#1976d2;color:#fff}
+ .msg .meta{font-size:11px;color:#6b7280;margin-top:4px}
  /* PIN overlay */
  #pin_overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:9999}
  #pin_box{background:#fff;border-radius:12px;padding:16px;min-width:300px}
+ @media (max-width:480px){
+   .item{padding:8px}
+   .item .tick{flex-basis:30px}
+   .msg .bubble{max-width:88%}
+ }
 </style>
 </head>
 <body>
@@ -304,7 +316,13 @@ async function loadPages(){
     const r = await fetch('/api/pages'); const d = await r.json();
     if(d.error){ pagesStatus.textContent = JSON.stringify(d); return; }
     const arr = d.data || [];
-    pagesBox.innerHTML = arr.map(p=>'<div class="item"><span>'+ (p.name||'') +'</span><input type="checkbox" class="pg" value="'+p.id+'" data-name="'+(p.name||'')+'"></div>').join('');
+    pagesBox.innerHTML = arr.map(p => `
+      <div class="item">
+        <div class="name" title="${(p.name||'').replaceAll('"','&quot;')}">${p.name||''}</div>
+        <div class="tick">
+          <input type="checkbox" class="pg" value="${p.id}" data-name="${(p.name||'').replaceAll('"','&quot;')}">
+        </div>
+      </div>`).join('');
     pagesStatus.textContent='Tải '+arr.length+' page.';
   }catch(e){ pagesStatus.textContent='Lỗi tải danh sách page'; }
 }
@@ -316,7 +334,7 @@ async function loadPagesToSelect(id){
   }catch(e){ $('#'+id).innerHTML='<option>Lỗi tải page</option>'; }
 }
 
-// ----- AI Writer (giống UI cũ) -----
+// ----- AI Writer -----
 $('#btn_ai').onclick = async () => {
   const prompt  = ($('#ai_prompt').value||'').trim();
   const keyword = ($('#ai_keyword').value||'').trim();
@@ -370,7 +388,7 @@ $('#btn_publish').onclick = async () => {
       }
       if(d.error){ results.push('❌ '+pid+': '+JSON.stringify(d)); }
       else{ results.push('✅ '+pid+(d.permalink_url?(' · <a target="_blank" href="'+d.permalink_url+'">Mở bài</a>'):'') ); }
-      await sleep(1000);
+      await sleep(800);
     }
     st.innerHTML = results.join('<br/>');
   }catch(e){ st.textContent='Lỗi đăng'; }
@@ -405,52 +423,57 @@ async function openThread(pageId, threadId){
     for(const m of msgs){
       const tos=((m.to||{}).data)||[]; const fr=m.from||{};
       for(const t of tos){ if(t.id!==pageId){ rec=t.id; break; } }
-      if(!rec && fr.id!==pageId){ rec=fr.id; }
-      if(rec) break;
+      if(!rec and fr.get('id')!=pageId): pass
+      if(not rec and fr.get('id')!=pageId): rec = fr.get('id')
+      if(rec): break
     }
-    currentRecipient=rec;
-    const fmt=(i)=>{ try{return new Date(i).toLocaleString();}catch(_){return i||'';} };
-    $('#msg_list').innerHTML = msgs.map(m=>{
-      const fromId=(m.from&&m.from.id)||''; const fromName=(m.from&&(m.from.name||m.from.id))||(fromId||'Unknown');
-      const cls=(fromId===pageId)?'me':'other'; const text=(m.message||'[attachment]'); const time=fmt(m.created_time||'');
-      return '<div class="'+cls+'"><div><b>'+fromName+'</b> · '+time+'</div><div>'+text+'</div></div>';
-    }).join('');
-    st.textContent='Đã tải '+msgs.length+' tin nhắn.'+(currentRecipient?'':' (Chưa xác định người nhận)');
+    // Python code accidentally included in JS above; fix JS below
   }catch(e){ st.textContent='Lỗi tải tin nhắn'; }
 }
-$('#btn_send').onclick = async ()=>{
-  const pid=$('#inbox_page').value, text=($('#msg_text').value||'').trim(), st=$('#inbox_status');
-  if(!pid){ st.textContent='Chưa chọn page'; return; }
-  if(!text){ st.textContent='Nhập nội dung trước'; return; }
-  if(!currentRecipient){ st.textContent='Chưa xác định người nhận — hãy mở một thread trước.'; return; }
-  st.textContent='Đang gửi...';
-  try{
-    const d = await (await fetch('/api/pages/'+pid+'/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipient_id: currentRecipient, text})})).json();
-    if(d.error){ st.textContent='Lỗi: '+JSON.stringify(d); return; }
-    st.textContent='Đã gửi.'; if(currentThread){ await openThread(pid,currentThread); } $('#msg_text').value='';
-  }catch(e){ st.textContent='Lỗi gửi tin'; }
-};
-
-window.addEventListener('load', ()=>{ ensurePin().then(loadPages); });
 </script>
 </body>
 </html>
 """
+
+# BUG: The above JS accidentally included Python-like syntax. Let's fix by patching the block.
+CLASSIC_HTML = CLASSIC_HTML.replace(
+    "for(const m of msgs){\n      const tos=((m.to||{}).data)||[]; const fr=m.from||{};\n      for(const t of tos){ if(t.id!==pageId){ rec=t.id; break; } }\n      if(!rec and fr.get('id')!=pageId): pass\n      if(not rec and fr.get('id')!=pageId): rec = fr.get('id')\n      if(rec): break\n    }\n    // Python code accidentally included in JS above; fix JS below\n  }catch(e){ st.textContent='Lỗi tải tin nhắn'; }\n}\n</script>",
+    """for(const m of msgs){
+      const tos=((m.to||{}).data)||[]; const fr=m.from||{};
+      for(const t of tos){ if(t.id!==pageId){ rec=t.id; break; } }
+      if(!rec && fr.id!==pageId){ rec = fr.id; }
+      if(rec) break;
+    }
+    currentRecipient=rec;
+    const fmt=(i)=>{ try{return new Date(i).toLocaleString();}catch(_){return i||'';} };
+    document.querySelector('#msg_list').innerHTML = msgs.map(m=>{
+      const fromId=(m.from&&m.from.id)||''; const fromName=(m.from&&(m.from.name||m.from.id))||(fromId||'Unknown');
+      const text=(m.message||'[attachment]'); const time=fmt(m.created_time||'');
+      const side=(fromId===pageId)?'me':'other';
+      return `<div class="msg ${side}"><div><div class="bubble">${text}</div><div class="meta">${fromName} · ${time}</div></div></div>`;
+    }).join('');
+    st.textContent='Đã tải '+msgs.length+' tin nhắn.'+(currentRecipient?'':' (Chưa xác định người nhận)');
+  }catch(e){ st.textContent='Lỗi tải tin nhắn'; }
+}
+</script>"""
+)
 
 @app.get("/")
 def index():
     return render_template_string(CLASSIC_HTML.replace("OPENAI_API_KEY_PLACEHOLDER", "1" if OPENAI_API_KEY else ""))
 
 # ----------------- API endpoints -----------------
+def _get_user_token():
+    store = load_tokens()
+    return (store.get("user_long") or {}).get("access_token") or ""
+
 @app.get("/api/pages")
 def api_pages():
-    store = load_tokens()
-    user_tok = (store.get("user_long") or {}).get("access_token") or ""
+    user_tok = _get_user_token()
     if user_tok:
         data, st = graph_get("me/accounts", {"limit":200}, user_tok)
         if st == 200 and isinstance(data, dict): 
             return jsonify(data), 200
-    # fallback to PAGE_TOKENS map
     mp = env_map_tokens()
     if mp:
         pages = []
@@ -514,7 +537,6 @@ def api_reel(page_id):
     tok = page_token_for(page_id)
     if not tok: return jsonify({"error":"NO_PAGE_TOKEN"}), 403
     file = request.files["video"]; desc = request.form.get("description","")
-    # simplified: direct /videos works for many pages as reels (depending on page settings)
     files={"source":(file.filename, file.stream, file.mimetype or "application/octet-stream")}
     form={"description":desc, "upload_phase": None}
     data, st = graph_post_multipart(f"{page_id}/videos", files, form, tok)
