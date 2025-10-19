@@ -491,10 +491,6 @@ INDEX_HTML = r"""<!DOCTYPE html>
   margin-right: 4px;
   align-self: center;
 }
-
-/* === FORCE TAB CLICKABILITY === */
-.tabs, .tabs .tab{ pointer-events: auto !important; position: relative; z-index: 100000 !important; }
-
 </style>
 </head>
 <body>
@@ -696,13 +692,11 @@ $('#btn_pin_ok').onclick = async () => {
 };
 
 function showTab(name){
-  ['posts','inbox'].forEach(id=>{
-    const t=document.getElementById('tab-'+id);
-    const p=document.getElementById('panel-'+id);
-    if(t && t.classList){ t.classList.toggle('active', id===name); }
-    if(p){ p.style.display=(id===name)?'block':'none'; }
+  ['posts','inbox','settings','page-info'].forEach(n=>{
+    const id = n==='page-info' ? 'page-info' : n;
+    $('#tab-'+id).classList.toggle('active', id===name);
+    $('#panel-'+id).classList.toggle('active', id===name);
   });
-});
 }
 $('#tab-posts').onclick = ()=>showTab('posts');
 $('#tab-inbox').onclick = ()=>{ showTab('inbox'); loadPagesToSelect('inbox_page'); };
@@ -732,7 +726,7 @@ async function loadPages(){
     pagesStatus.textContent = 'Tải ' + arr.length + ' page.';
   }catch(e){ pagesStatus.textContent = 'Lỗi tải danh sách page: ' + (e && (e.message||e.toString()) || ''); }
 }
-loadPages(); ensurePin(); pollNewEvents();
+loadPages(); loadPagesToSelect('inbox_page'); ensurePin(); pollNewEvents();
 
 function selectedPageIds(){
   return Array.from(document.querySelectorAll('.pg:checked')).map(i=>i.value);
@@ -741,10 +735,20 @@ function selectedPageIds(){
 async function loadPagesToSelect(selectId){
   const sel = $('#'+selectId);
   try{
-    const r = await fetch('/api/pages'); const d = await r.json();
-    const arr = d.data || [];
-    sel.innerHTML = '<option value="">--Chọn page--</option>' + arr.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');
-  }catch(e){ sel.innerHTML = '<option>Không tải được</option>'; }
+    const r = await fetch('/api/pages');
+    const d = await r.json();
+    if(d && d.error){
+      sel.innerHTML = '<option value="">(Lỗi: ' + String(d.error) + ')</option>';
+      const st = $('#inbox_status'); if(st){ st.textContent = 'Không tải được danh sách Page: ' + String(d.error); }
+      return;
+    }
+    const arr = (d && d.data) || [];
+    sel.innerHTML = '<option value="">--Chọn page--</option>' + arr.map(p=>'<option value="'+p.id+'">'+(p.name||p.id)+'</option>').join('');
+    const st = $('#inbox_status'); if(st){ st.textContent = 'Đã nạp ' + arr.length + ' page.'; }
+  }catch(e){
+    sel.innerHTML = '<option value="">(Không tải được)</option>';
+    const st = $('#inbox_status'); if(st){ st.textContent = 'Lỗi tải danh sách Page: ' + (e && (e.message||String(e)) || ''); }
+  }
 }
 
 // AI writer
@@ -1041,37 +1045,6 @@ async function pollNewEvents(){
     await sleep(5000);
   }
 } 
-
-// === FORCE TAB SWITCHING (override anything else) ===
-(function(){
-  const tabPosts = document.getElementById('tab-posts');
-  const tabInbox = document.getElementById('tab-inbox');
-  const panelPosts = document.getElementById('panel-posts');
-  const panelInbox = document.getElementById('panel-inbox');
-  function activate(name){
-    if(!panelPosts||!panelInbox||!tabPosts||!tabInbox) return;
-    if(name==='posts'){
-      panelPosts.style.display='block';
-      panelInbox.style.display='none';
-      tabPosts.classList?.add('active');
-      tabInbox.classList?.remove('active');
-    }else{
-      panelPosts.style.display='none';
-      panelInbox.style.display='block';
-      tabInbox.classList?.add('active');
-      tabPosts.classList?.remove('active');
-    }
-  }
-  if(tabPosts){
-    tabPosts.onclick = function(e){ e.preventDefault(); e.stopPropagation(); activate('posts'); return false; };
-  }
-  if(tabInbox){
-    tabInbox.onclick = function(e){ e.preventDefault(); e.stopPropagation(); activate('inbox'); return false; };
-  }
-  // Initialize to posts by default
-  activate('posts');
-})();
-
 </script>
   </div>
 <audio id="newMsg" src="/static/new-message.mp3" preload="auto"></audio>
@@ -1109,37 +1082,6 @@ async function pollNewEvents(){
   ['cfg_app_id','cfg_app_secret','cfg_short_token','btn_save_cfg','btn_exchange','cfg_status','btn_diag','diag_out']
     .forEach(hideById);
 })();
-
-// === FORCE TAB SWITCHING (override anything else) ===
-(function(){
-  const tabPosts = document.getElementById('tab-posts');
-  const tabInbox = document.getElementById('tab-inbox');
-  const panelPosts = document.getElementById('panel-posts');
-  const panelInbox = document.getElementById('panel-inbox');
-  function activate(name){
-    if(!panelPosts||!panelInbox||!tabPosts||!tabInbox) return;
-    if(name==='posts'){
-      panelPosts.style.display='block';
-      panelInbox.style.display='none';
-      tabPosts.classList?.add('active');
-      tabInbox.classList?.remove('active');
-    }else{
-      panelPosts.style.display='none';
-      panelInbox.style.display='block';
-      tabInbox.classList?.add('active');
-      tabPosts.classList?.remove('active');
-    }
-  }
-  if(tabPosts){
-    tabPosts.onclick = function(e){ e.preventDefault(); e.stopPropagation(); activate('posts'); return false; };
-  }
-  if(tabInbox){
-    tabInbox.onclick = function(e){ e.preventDefault(); e.stopPropagation(); activate('inbox'); return false; };
-  }
-  // Initialize to posts by default
-  activate('posts');
-})();
-
 </script>
 </body>
 </html>"""
